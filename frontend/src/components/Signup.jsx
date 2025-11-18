@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {Link} from 'react-router-dom'
 import { signupStyles } from '../assets/dummyStyles'
+import {FaArrowLeft, FaEyeSlash, FaEye, FaLock, FaEnvelope, FaCheck, FaUser} from 'react-icons/fa'
+import axios from 'axios'
 
 
 const Signup = () => {
@@ -17,7 +19,7 @@ const Signup = () => {
       const [apiError, setApiError] = useState('');
 
      const [showToast, setShowToast] = useState(false)
-     const [error, setError] = useState({});
+     const [errors, setErrors] = useState({});
      const navigate = useNavigate();
 
      useEffect(()=>{
@@ -28,7 +30,7 @@ const Signup = () => {
         },2000)
         return () => clearTimeout(timer)
       }
-     }, {showToast,navigate})
+     }, [showToast,navigate])
 
 
       // FORM HANDLER
@@ -68,7 +70,7 @@ const Signup = () => {
     }
     try{
       const res = await axios.post(
-        'http://localhost:4000/api/user/register',
+        'http://localhost:4000/api/users/register',
         {
           name: formData.name,
           email: formData.email,
@@ -140,8 +142,8 @@ const Signup = () => {
               </div>
 
               <div className={signupStyles.inputContainer}>
-                <FaEnvelop className={signupStyles.inputIcon} />
-                <input type="email" name='emial' value={formData.email} onChange={handleChange}
+                <FaEnvelope className={signupStyles.inputIcon} />
+                <input type="email" name='email' value={formData.email} onChange={handleChange}
                 placeholder='Email Address' required className={signupStyles.input} />
 
                 {errors.email && <p className={signupStyles.error}>{errors.email}</p>}
@@ -150,13 +152,13 @@ const Signup = () => {
 
               <div className={signupStyles.inputContainer}>
                 <FaLock className={signupStyles.inputIcon} />
-                <input type={showPassword.password ? 'text' : 'password'} name='password' value={formData.password} onChange={handleChange}
+                <input type={showPassword ? 'text' : 'password'} name='password' value={formData.password} onChange={handleChange}
                 placeholder='Password' required className={signupStyles.passwordInput} />
 
                 <button type='button' onClick={() => togglePasswordVisibility('password')}
                   className={signupStyles.toggleButton}
-                  aria-label={showPassword.password  ? 'Hide password' : 'Show password'}>
-                    {showPassword.password ? <FaEyeSlash /> : <FaEye />}
+                  aria-label={showPassword  ? 'Hide password' : 'Show password'}>
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
 
                 </button>
 

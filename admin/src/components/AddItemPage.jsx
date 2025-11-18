@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useRef } from 'react';
 import {addItemPageStyles as styles} from '../assets/adminStyles'
 import axios from 'axios';
 import { FiSave, FiX, FiUpload } from 'react-icons/fi';
@@ -22,7 +22,8 @@ const categories = [
   'Pantry',
 ];
 const AddItemPage = () => {
-    const [formData, setFormData] = useState(intitalFormState);
+    const [formData, setFormData] = useState(initialFormState);
+
     const fileInputRef = useRef();
 
     const handleChange = (e) => {
@@ -138,7 +139,7 @@ const AddItemPage = () => {
                             </>
                                 )}
 
-                                <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className="styles.hiddenInput" />
+                                <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className={styles.hiddenInput} />
                                 
                     </div>
                 </div>

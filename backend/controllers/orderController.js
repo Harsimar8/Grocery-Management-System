@@ -31,8 +31,9 @@ export const createOrder = async(req,res) => {
                 line_items: orderItems.map(o => ({
                     price_data: {
                         currency: 'inr',
-                        product_Data: {name: oname},
-                        unit_amount: Math.round(o.price * 100)
+                        product_data: {name: o.name},
+                        unit_amount: Math.round(Number(o.price) * 100),
+
                     },
                     quantity: o.quantity
                 })),
@@ -41,7 +42,7 @@ export const createOrder = async(req,res) => {
                 cancel_url: `${process.env.FRONTEND_URL}/checkout?payment_status=cancel`,
                 metadata: {orderId}
 
-            }),
+            });
             
             newOrder = new Order({
                 orderId,
@@ -52,7 +53,7 @@ export const createOrder = async(req,res) => {
                 paymentMethod: normalizedPM,
                 paymentStatus: 'Unpaid',
                 sessionId: session.id,
-                paymentIntentId: session.payment_intent,
+                paymentIntentId:  null,
                 notes,
                 deliveryDate
             });
@@ -69,7 +70,7 @@ export const createOrder = async(req,res) => {
                 items: orderItems,
                 shipping: 0,
                 paymentMethod: normalizedPM,
-                paymentStatus: 'Paid',
+                paymentStatus: 'Unpaid',
                 notes,
                 deliveryDate
         });
@@ -97,7 +98,10 @@ export const confirmPayment = async(req,res) =>{
 
         const order = await Order.findOneAndUpdate(
             {sessionId : session_id},
-            {paymentStatus: 'Paid'},
+            { 
+  paymentStatus: 'Paid',
+  paymentIntentId: session.payment_intent 
+},
             {new: true}
         );
         if(!order) return res.status(404).json({ message: 'Order not found'});
@@ -153,7 +157,7 @@ export const updateOrder = async (req,res,next) =>{
         const updated = await Order.findByIdAndUpdate(
             req.params.id,
             updateData,
-            { new: true, runValidators: true}.lean();
+            { new: true, runValidators: true}).lean();
         
         if(!updated){
             return res.status(404).json({ message: 'Order not found'});
@@ -161,7 +165,7 @@ export const updateOrder = async (req,res,next) =>{
         res.json(updated);
 
     }
-    catch(error){
+    catch(err){
         console.error('UpdateOrder Error: ', err)
         next(err);
     }

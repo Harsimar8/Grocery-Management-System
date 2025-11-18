@@ -1,294 +1,187 @@
-import React, { useEffect, useState } from 'react'
-import {useCart} from '../CartContext'
-import {Link, useLocation, useNavigate} from 'react-router-dom'
-import { itemsHomeStyles, itemsPageStyles } from '../assets/dummyStyles'
-import {FiMinus, FiPlus, FiArrowLeft, FiSearch, FiChevronDown, FiChevronUp} from 'react-icons/fi'
-import {groceryData} from '../assets/dummyDataItem'
+import React, { useEffect, useState } from "react";
+import { useCart } from "../CartContext";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { itemsHomeStyles, itemsPageStyles } from "../assets/dummyStyles";
+import {
+  FiMinus,
+  FiPlus,
+  FiArrowLeft,
+  FiSearch,
+  FiChevronDown,
+  FiChevronUp,
+} from "react-icons/fi";
 
+import { products } from "../assets/dummyData";
 
-//PRODUCT CARD 
+// --------------------------------------------------
+// PRODUCT CARD
+// --------------------------------------------------
+const ProductCard = ({ item }) => {
+  const { cart, addToCart, removeFromCart, updateQuantity } = useCart();
 
-const ProductCard = ({  item }) =>{
-    const {cart, addToCart, removeFromCart, updateQuantity} = useCart()
-    //GET CURRENT QTY
-    const cartItem = cart.find(cartItem => cartItem.id === item.id)
-    const quantity = cartItem ? cartItem.quantity : 0
+  // FIX 1 — correct cart item finder
+  const cartItem = cart.find((ci) => ci.productId === item.id);
 
-    // ADD TO CART
+  const lineId = cartItem?.id;
+  const quantity = cartItem ? cartItem.quantity : 0;
 
-    const handleAddToCart = () =>{
-        addToCart(item)
-    }
+  // FIX 2 — correct image logic
+  const imgSrc = item.image || "/no-image.png";
 
-    const handleIncreament = () =>{
-        if(quantity === 0){
-            addToCart(item);
-        }
-        else{
-            updateQuantity(item.id, quantity + 1)
-        }
-    }
+  return (
+    <div className={itemsPageStyles.productCard}>
+      <div className={itemsPageStyles.imageContainer}>
+        <img src={imgSrc} alt={item.name} className={itemsPageStyles.productImage} />
+      </div>
 
-    const handleDecreament = () =>{
-        if(quantity === 1){
-            removeFromCart(item.id);
-        }
-        else{
-            updateQuantity(item.id, quantity - 1)
-        }
-    }
-
-    return (
-        <div className={itemsPageStyles.productCard}>
-            <div className={itemsPageStyles.imageContainer}>
-                <img src={item.image} alt={item.name} className={itemsPageStyles.productImage} />
-
-            </div>
-
-            <div className={itemsPageStyles.cardContent}>
-                <div className={itemsPageStyles.titleContainer}>
-                    <h3 className={itemsPageStyles.productTitle}>
-                        {item.name}
-                    </h3>
-                    <span className={itemsPageStyles.organicTag}>
-                        Organic
-                    </span>
-
-                </div>
-                <p className={itemsPageStyles.productDescription}>
-                    {item.description || `Fresh organic ${item.name.toLowerCase()} sourced locally`}
-
-                </p>
-                <div className={itemsPageStyles.priceContainer}>
-                    <span className={itemsPageStyles.currentPrice}>
-                        Rs{item.price.toFixed(2)}
-                    </span>
-                    <span className={itemsPageStyles.oldPrice}>
-                        Rs{(item.price * 1.5).toFixed(2)}
-                    </span>
-                </div>
-                <div className=' mt-3 '>
-                    {quantity > 0 ? (
-                        <div className={itemsPageStyles.quantityControls}>
-                            <button onClick={handleDecreament}
-                            className={`${itemsPageStyles.quantityButton} ${itemsPageStyles.quantityButtonLeft}`}>
-                                <FiMinus />
-                            </button>
-                            <span className={itemsPageStyles.quantityValue}>
-                                {quantity}
-                            </span>
-                            <button onClick={handleIncreament}
-                            className={`${itemsPageStyles.quantityButton}
-                             ${itemsPageStyles.quantityButtonRight}`}>
-                                <FiPlus />
-
-                            </button>
-                            </div>
-                    ) : (
-                        <button onClick={handleAddToCart}
-                        className={itemsPageStyles.addButton}>
-                            <span> Add to Cart</span>
-                            <span className={itemsPageStyles.addButtonArrow}>
-                                .
-                            </span>
-                        </button>
-                    )}
-                </div>
-
-            </div>
+      <div className={itemsPageStyles.cardContent}>
+        <div className={itemsPageStyles.titleContainer}>
+          <h3 className={itemsPageStyles.productTitle}>{item.name}</h3>
+          <span className={itemsPageStyles.organicTag}>Organic</span>
         </div>
-    )
 
+        <p className={itemsPageStyles.productDescription}>
+          {item.description ||
+            `Fresh organic ${item.name.toLowerCase()} sourced locally`}
+        </p>
 
-}
+        <div className={itemsPageStyles.priceContainer}>
+          <span className={itemsPageStyles.currentPrice}>Rs {item.price.toFixed(2)}</span>
+          <span className={itemsPageStyles.oldPrice}>
+            Rs {(item.price * 1.5).toFixed(2)}
+          </span>
+        </div>
 
+        <div className="mt-3">
+          {quantity > 0 ? (
+            <div className={itemsPageStyles.quantityControls}>
+              <button
+                onClick={() =>
+                  quantity === 1 ? removeFromCart(lineId) : updateQuantity(lineId, quantity - 1)
+                }
+                className={`${itemsPageStyles.quantityButton} ${itemsPageStyles.quantityButtonLeft}`}
+              >
+                <FiMinus />
+              </button>
 
+              <span className={itemsPageStyles.quantityValue}>{quantity}</span>
 
+              <button
+                onClick={() => updateQuantity(lineId, quantity + 1)}
+                className={`${itemsPageStyles.quantityButton} ${itemsPageStyles.quantityButtonRight}`}
+              >
+                <FiPlus />
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => addToCart(item.id, 1)} className={itemsPageStyles.addButton}>
+              <span>Add to Cart</span>
+              <span className={itemsPageStyles.addButtonArrow}>→</span>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
-
+// --------------------------------------------------
+// MAIN ITEMS PAGE
+// --------------------------------------------------
 const Item = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [expandedCategories, setExpandedCategories] = useState({});
+  const [allExpanded, setAllExpanded] = useState(false);
 
-    const navigate = useNavigate()
-    const [searchTerm, setSearchTerm] = useState('')
-    const location = useLocation()
-    const [expandedCategories, setExpandedCategories] = useState({});
-    const [allExpanded ,setAllExpanded] = useState(false);
+  const [data, setData] = useState([]);
 
-    // search query for url
-    useEffect(() => {
-        const queryParams = new URLSearchParams(location.search);
-        const search = queryParams.get('search') 
+  // insert products into one category
+  useEffect(() => {
+    setData([
+  {
+    id: "all-products",
+    name: "All Products",
+    items: products,
+  },
+]);
 
-        if (search) {
-            setSearchTerm(search);
-        }
-        
-    }, [location.search]);
+  }, []);
 
-    //ENHANCE SEARCH
-    const itemMatchSearch  = (item,term) => {
-        if(!term) return true;
+  // read ?search=
+  useEffect(() => {
+    const q = new URLSearchParams(location.search).get("search");
+    if (q) setSearchTerm(q);
+  }, [location.search]);
 
-        const cleanTerm = term.trim().toLowerCase();
-        const searchWords = cleanTerm.split(/\s+/);
+  const itemMatchSearch = (item, term) =>
+    !term || item.name.toLowerCase().includes(term.toLowerCase());
 
-        return searchWords.every(word =>
-            item.name.toLowerCase().includes(word))
-    }
-
-
-
-    // FILTER
-
-    const filteredData = searchTerm ? groceryData.map(category => ({
-        ...category,
-        items: category.items.filter(item => itemMatchSearch(item, searchTerm))
-    })).filter(category => category.items.length > 0) : groceryData;
-    
-    
-    // clear search
-
-    const clearSearch = () => {
-        setSearchTerm('');
-        navigate('/items');
-    }       
-
-    // TOGGLE CATEGORY 
-    const toggleCategory = (categoryId) => {
-        setExpandedCategories(prev => ({
-            ...prev,
-            [categoryId]: !prev[categoryId]
+  const filteredData = searchTerm
+    ? data
+        .map((cat) => ({
+          ...cat,
+          items: cat.items.filter((item) => itemMatchSearch(item, searchTerm)),
         }))
-    }
-
-    const toggleAllCategories = () => {
-        if(allExpanded){
-            setExpandedCategories({});
-            
-        }
-        else{
-            const expanded = {};
-            groceryData.forEach(category => {
-                expanded[category.id] = true;
-            });
-            setExpandedCategories(expanded)
-        }
-        setAllExpanded(!allExpanded);
-    }
+        .filter((cat) => cat.items.length > 0)
+    : data;
 
   return (
     <div className={itemsPageStyles.container}>
-        <header className={itemsPageStyles.header}>
-            <Link to='/' className={itemsPageStyles.backLink}>
-            <FiArrowLeft className='mr-2' />
-            <span>Back</span>
-            </Link>
+      <header className={itemsPageStyles.header}>
+        <Link to="/" className={itemsPageStyles.backLink}>
+          <FiArrowLeft className="mr-2" />
+          <span>Back</span>
+        </Link>
 
-            <h1 className={itemsPageStyles.mainTitle}>
-             <span className={itemsPageStyles.titleSpan}>ORGANIC</span>
-            </h1>
+        <h1 className={itemsPageStyles.mainTitle}>
+          <span className={itemsPageStyles.titleSpan}>ORGANIC</span>
+        </h1>
+      </header>
 
-            <p className={itemsHomeStyles.subtitle}>
-                Premium quality groceries sourced from local organic farms
-            </p>
-
-            <div className={itemsPageStyles.titleDivider}>
-                <div className={itemsPageStyles.dividerLine} />
-
-
-            </div>
-        </header>
-
-        {/* SEARCH- BAR */}
-        <div className={itemsPageStyles.searchContainer}>
-            <form onSubmit={(e) => {
-                e.preventDefault()
-                if(searchTerm.trim()){
-                    navigate(`/items?search=${encodeURIComponent(searchTerm)}`)
-                }
-            }}className={itemsPageStyles.searchForm}>
-            <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder='Search fruits, vegetables, meats...'
-            className={itemsPageStyles.searchInput} />
-
-
-            <button type='submit' className={itemsPageStyles.searchButton}>
-                <FiSearch className=' h-5 w-5' />
-            </button>
-            </form>
-        </div>
-
-        <div className='flex justify-center mb-10'>
-            <button onClick={toggleAllCategories}
-            className={itemsPageStyles.expandButton}>
-                <span className='mr-2 font-medium'>
-                    {allExpanded ? 'Collapse All' : 'Expand All'}
-                    </span>
-                    {allExpanded ? <FiMinus className='text-lg' /> : <FiPlus className='text-lg' />}
-            </button>
+      {/* SEARCH */}
+      <div className={itemsPageStyles.searchContainer}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            navigate(`/items?search=${encodeURIComponent(searchTerm)}`);
+          }}
+          className={itemsPageStyles.searchForm}
+        >
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={itemsPageStyles.searchInput}
+            placeholder="Search..."
+          />
+          <button className={itemsPageStyles.searchButton}>
+            <FiSearch />
+          </button>
+        </form>
       </div>
 
-      {filteredData.length > 0 ?  (
-        filteredData.map(category => {
-            const isExpanded = expandedCategories[category.id] ||  allExpanded;
-            const visibleItems = isExpanded ? category.items : category.items.slice(0,4);
-            const hasMoreItems = category.items.length > 4;
-            return (
-                <section key={category.id} className={itemsPageStyles.categorySection}>
-                    <div className={itemsPageStyles.categoryHeader}>
-                        <div className={itemsPageStyles.categoryIcon}>  </div>
-                        <h2 className={itemsPageStyles.categoryTitle}>
-                            {category.name}
-                        </h2>   
-                        <div className={itemsPageStyles.categoryDivider}></div>
-                            </div>
-
-                    <div className={itemsPageStyles.productsGrid}>
-                        {visibleItems.map(item => (
-                            <ProductCard key={item.id} item={item} />
-                        ))}
-                    </div>
-
-                    {hasMoreItems && (
-                        <div className='mt-8 flex justify-center'>
-                            <button onClick={() => toggleCategory(category.id)}
-                            className={itemsPageStyles.showMoreButton}>
-                            <span className='mr-2 font-medium'>
-                            {isExpanded ? `Show Less${category.name} (${category.items.length - 4}+)` : `Show More ${category.name}`}
-                            </span>
-                            {isExpanded ? <FiChevronUp className=' text-lg'/>
-                            : <FiChevronDown className=' text-lg' />}
-                            </button>
-                        </div>
-                    )}
-                            </section>
-                            );
-      })
-                    ) : (
-                     <div className={itemsPageStyles.noProductsContainer}>
-                     <div className={itemsPageStyles.noProductCard}>
-                     <div className={itemsPageStyles.noProductsIcon}>
-                     <FiSearch className= ' mx-auto h-16 w-16' />
-                     </div>
-
-                     <h3 className={itemsPageStyles.noProductsTitle}>
-                     No Products Found
-                     </h3>
-                     <p className={itemsPageStyles.noProductsText}>
-                        We couldn't find any items matching "{searchTerm}"
-                     </p>
-
-                     <button onClick={clearSearch}
-                     className={itemsPageStyles.clearSearchButton}>
-                     Clear Search
-                     </button>
-                     </div> 
-                     </div>
-  )
-}
-</div>
-  )
-}
+      {/* CATEGORIES */}
+      {filteredData.map((category) => {
+        const visible = category.items; // show ALL products
 
 
-export default Item
+        return (
+          <section key={category.id} className={itemsPageStyles.categorySection}>
+            <h2 className={itemsPageStyles.categoryTitle}>{category.name}</h2>
+
+            <div className={itemsPageStyles.productsGrid}>
+              {visible.map((item) => (
+                <ProductCard key={item.id} item={item} />
+
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  );
+};
+
+export default Item;

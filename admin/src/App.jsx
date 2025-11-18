@@ -1,10 +1,14 @@
 import React from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AdminNavbar from './components/AdminNavbar'
 import AddItemPage from './components/AddItemPage'
+import ListItemsPage from './components/ListItemsPage';
+import OrdersPage from './components/OrdersPage';
 
 const App = () => {
   return (
     <div className='min-h-screen flex flex-col'>
+      <Router>
       <AdminNavbar/>
       <main className='flex-grow bg-slate-50'>
         <Routes>
@@ -26,6 +30,7 @@ const App = () => {
         </div>
 
       </footer>
+      </Router>
     </div>
   )
 }

@@ -1,4 +1,5 @@
-import mongoose from 'mongooose';
+import mongoose from 'mongoose';
+
 const orderItemSchema = new mongoose.Schema({
      id: { type: String, required: true },
     name: { type: String, required: true },

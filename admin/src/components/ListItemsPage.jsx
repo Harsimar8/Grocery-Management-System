@@ -1,19 +1,20 @@
 import React from 'react'
 import {listItemsPageStyles as styles} from '../assets/adminStyles';
-import { FiPackage } from 'react-icons/fi';
-import { useState } from 'react';
+import { FiPackage, FiFilter, FiTrash2 } from 'react-icons/fi';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const StatsCard= ({icon: IconBase, color, border, label, value}) => {
+const StatsCard= ({icon: Icon, color, border, label, value}) => (
     <div className={styles.statsCard(border)}>
         <div className={styles.statsCardInner}>
-            <div className={statusCardIconContainer(color)}>
+            <div className={styles.statusCardIconContainer(color)}>
                 <Icon className={styles.statsCardIcon(color)} />
             </div>
         </div>
         <p className={styles.statsCardLabel}>{label}</p>
         <p className={styles.statsCardValue}>{value}</p>
     </div>
+);
 
 const ListItemsPage = () => {
 
@@ -86,15 +87,15 @@ const ListItemsPage = () => {
         <div className={styles.statsGrid}>
             <StatsCard
             icon={FiPackage}
-            color="bg-emrald-100"
+            color="bg-emerald-100"
             border="border-emerald-500"
             label="Total Products"
-            value={ListItemsPage.length} />
+            value={items.length} />
 
         </div>
 
         <div className={styles.contentContainer}>
-            <div className={styles,headerflex}>
+            <div className={styles.headerflex}>
                 <h2 className={styles.headerTitleSmall}>
                     Products ({filteredItems.length})
                     {selectedCategory !== "All" && `in ${selectedCategory}`}
@@ -146,7 +147,7 @@ const ListItemsPage = () => {
           ) : (
             <div className={styles.tableContainer}>
                 <table className={styles.table}>
-                    <thread className={styles.tableHead}>
+                    <thead className={styles.tableHead}>
                         <tr>
                         <th className={styles.tableHeaderCell}>Product</th>
                     <th className={styles.tableHeaderCell}>Category</th>
@@ -154,10 +155,10 @@ const ListItemsPage = () => {
                     <th className={styles.tableHeaderCell}>Actions</th> 
                         </tr>
 
-                    </thread>
+                    </thead>
                     <tbody className={styles.tableBody}>
                         {filteredItems.map(item =>(
-                            <tr key={items._id} className={styles.tableRowHover}>
+                            <tr key={item._id} className={styles.tableRowHover}>
                                 <td className={styles.tableDataCell}>
                                     <div className={styles.productCell}>
                                         {item.imageUrl ? (

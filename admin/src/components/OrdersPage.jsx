@@ -1,6 +1,15 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react';
 import { ordersPageStyles as styles } from '../assetsadminStyles'
-import {FiCheck,FiCreditCard,FiPackage,FiTruck} from 'react-icons/fi';
+import {FiCheck,
+  FiCreditCard,
+  FiPackage,
+  FiTruck,
+  FiX,
+  FiUser,
+  FiMail,
+  FiPhone,
+  FiMapPin,
+  FiEdit} from 'react-icons/fi';
 import {BsCurrencyRupee} from 'react-icons/bs';
 import axios from 'axios'
 
@@ -51,13 +60,13 @@ useEffect(() => {
 },[orders,searchTerm, statusFilter ,paymentFilter]);
 
 // UPDATE THE ORDER USING ID
-const updateOrderStatus = async (getOrderById, newStatus) =>{
+const updateOrderStatus = async (orderId, newStatus) =>{
     try{
         await axios.put(
             `http://localhost:4000/api/orders/${orderId}`,
             {status: newStatus}
         );
-    }
+    
     setOrders((prev) =>
     prev.map((order) =>
     order._id === orderId ? { ...order, status: newStatus} : order)
@@ -82,10 +91,10 @@ const viewOrderDetails = (order) => {
 }
 
 //close model
-const closeModel = () =>{
+const closeModal = () =>{
     setIsDetailModalOpen(false);
     setSelectedOrder(null);
-}
+};
   return (
     <div className={styles.pageContainer}>
         <div className={styles.innerContainer}>
@@ -162,7 +171,7 @@ const closeModel = () =>{
             <div className={styles.contentContainer}>
                 <div className=" overflow-x-auto">
                     <table className={styles.table}>
-                     <thread className={styles.tableHead}>
+                     <thead className={styles.tableHead}>
 <tr>
                   <th className={styles.tableHeaderCell}>Order ID</th>
                   <th className={styles.tableHeaderCell}>Customer</th>
@@ -173,7 +182,7 @@ const closeModel = () =>{
                   <th className={styles.tableHeaderCell}>Payment</th>
                   <th className={styles.tableHeaderCell}>Actions</th>
                 </tr>
-                     </thread>
+                     </thead>
 
 
                      <tbody className={styles.tableBody}>
@@ -203,7 +212,7 @@ const closeModel = () =>{
                                     </td>
 
                                     <td className={`${styles.tableDataCell} text-sm text-gray-500`}>
-                                        {order.items.lenth} items
+                                        {order.items.length} items
                                     </td>
 
                                     <td className={`${styles.tableDataCell} font-medium`}>
@@ -244,7 +253,7 @@ const closeModel = () =>{
         </div>
 
         {/* ORDER DETAILS */}
-        {isDetailOpen && selectedOrder && (
+        {isDetailModalOpen && selectedOrder && (
             <div className={styles.modalOverlay}>
                 <div className={styles.modalContainer}>
                     {/* MODAL HEADER */}
@@ -288,7 +297,7 @@ const closeModel = () =>{
 
                                         <div className="flex items-start mt-3">
                                             <FiMapPin className=" text-gray-500 mr-2 mt-1 flex-shrink-0" />
-                                            {selectedOrder.customer.email || "No email provided"}
+                                            {selectedOrder.customer.address || "No address provided"}
                                         </div>
                                     </div>
                                 </div>
@@ -298,9 +307,9 @@ const closeModel = () =>{
                             {selectedOrder.notes && (
                                 <div className={styles.modalSection}>
                                     <h3 className={styles.modalSectionTitle}>
-                                        <FiEdit className={styles.modalIcon}>
+                                        <FiEdit className={styles.modalIcon} />
                                             Delivery Notes
-                                        </FiEdit>
+                                        
                                     </h3>
                                     <div className={styles.modalNoteBox}>
                                         <p className=" text-gray-700">{selectedOrder.notes}</p>
@@ -400,7 +409,7 @@ const closeModel = () =>{
                                 <div className={styles.modalInfoBox}>
                                 <div className=" flex justify-between mb-3">
                                     <span className=" text-gray-600">Payment Method:</span>
-                                    <span className=" font-medium">{setSelectedOrder.paymentMethod}</span>
+                                    <span className="font-medium">{selectedOrder.paymentMethod}</span>
                                     </div>    
 
                                      <div className=' flex justify-between'>

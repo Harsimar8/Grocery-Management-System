@@ -1,6 +1,6 @@
-import React from 'react'
-import {adminNavbarStyles} from '../styles/adminNavbarStyles'
-import { FiPackage, FiPlusCircle, FiShoppingBag } from 'react-icons/fi';
+import React, { useState } from 'react';
+import { adminNavbarStyles as styles } from '../styles/adminNavbarStyles';
+import { FiPackage, FiPlusCircle, FiShoppingBag, FiMenu, FiX} from 'react-icons/fi';
 import { NavLink } from 'react-router-dom'; 
 
 

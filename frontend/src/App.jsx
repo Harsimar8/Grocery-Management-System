@@ -6,6 +6,10 @@ import Navbar from './components/Navbar';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import Logout from './components/Logout';
+import Checkout from './components/Checkout';
+import VerifyPaymentPage from './pages/VerifyPaymentPage';
+import MyOrders from './components/MyOrders';
+
 
 import Contact from './pages/Contact';
 import Items from './pages/Items';
@@ -45,7 +49,9 @@ const App = () => {
 
       <Route path='/cart' element={isAuthenticated ? <Cart /> : <Navigate replace to='/login' />} />
       <Route path='/checkout' element={<Checkout/>} />
+      <Route path='/myorders/verify' element={<VerifyPaymentPage/>} />
       <Route path='/myorders' element={<MyOrders/>} />
+
 
 
       {/* AUTH ROUTES*/}

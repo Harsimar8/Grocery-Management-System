@@ -1,8 +1,11 @@
-import User from '../models/userModel/js';
+import User from '../models/userModel.js';
 import jwt from 'jsonwebtoken';
 
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET not set in environment variables");
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_here';
 
 export default async function authMiddleware(req, res, next){
     const token = 

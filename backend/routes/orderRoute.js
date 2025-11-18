@@ -1,12 +1,13 @@
 import express from 'express';
-import authMiddleware from '../middlewares/auth.js';
-import { confirmPayment, createOrder, deleteOrder, getOrderById, getOrders, updateOrder } from '../controllers/orderController';
+import authMiddleware from '../middleware/auth.js';
+import { confirmPayment, createOrder, deleteOrder, getOrderById, getOrders, updateOrder } from '../controllers/orderController.js';
+
 
 const orderrouter = express.Router();
 
 // PROTECTED ROUTES
 orderrouter.post('/', authMiddleware, createOrder);
-orderrouter.get('/', authMiddleware, confirmPayment);
+orderrouter.get('/confirm', confirmPayment);
 
 //PUBLIC ROUTES
 orderrouter.get('/', getOrders);
