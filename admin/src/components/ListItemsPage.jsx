@@ -7,7 +7,7 @@ import axios from 'axios';
 const StatsCard= ({icon: Icon, color, border, label, value}) => (
     <div className={styles.statsCard(border)}>
         <div className={styles.statsCardInner}>
-            <div className={styles.statusCardIconContainer(color)}>
+            <div className={styles.statsCardIconContainer(color)}>
                 <Icon className={styles.statsCardIcon(color)} />
             </div>
         </div>
@@ -128,7 +128,7 @@ const ListItemsPage = () => {
                     </div>
                 </div>
 
-            </div>
+            
 
           {filteredItems.length === 0 ? (
             <div className={styles.emptyStateContainer}>

@@ -1,17 +1,42 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useCart } from "../CartContext";
 import contactStyles, { cartStyles } from "../assets/dummyStyles";
 import { Link } from "react-router-dom";
 import { FiArrowLeft, FiMinus, FiTrash2, FiPlus } from "react-icons/fi";
-import { products } from "../assets/dummyData"; // Load your static products
+import { products as dummyProducts } from "../assets/dummyData"; // Load your static products
+import axios from "axios";
 
 
 const CartPage = () => {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
+  const [allProducts, setAllProducts] = useState([]);
 
-  // Find matching product from dummy data
-const findProduct = (productId) =>
-  products.find((p) => p.id === productId);
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        let merged = [...dummyProducts];
+        const res = await axios.get("http://localhost:4000/api/items");
+        const backend = res.data;
+        const formatted = backend.map((item) => ({
+          id: item._id ? item._id.toString() : String(item.id || item._id),
+          name: item.name,
+          price: Number(item.price || 0),
+          category: item.category,
+          image: item.imageUrl ? `http://localhost:4000${item.imageUrl}` : "/no-image.png",
+        }));
+        merged = [...merged, ...formatted];
+        setAllProducts(merged);
+      } catch (err) {
+        console.log("Backend failed → using dummy only");
+        setAllProducts(dummyProducts);
+      }
+    };
+    loadProducts();
+  }, []);
+
+  // Find matching product from all data
+ const findProduct = (productId) =>
+   allProducts.find((p) => String(p.id) === String(productId));
 
 // Return name
 const getItemName = (item) =>

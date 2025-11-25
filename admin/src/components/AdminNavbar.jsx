@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { adminNavbarStyles as styles } from '../styles/adminNavbarStyles';
+import { adminNavbarStyles as styles } from '../assets/adminStyles';
 import { FiPackage, FiPlusCircle, FiShoppingBag, FiMenu, FiX} from 'react-icons/fi';
 import { NavLink } from 'react-router-dom'; 
 

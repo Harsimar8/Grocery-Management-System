@@ -12,26 +12,37 @@ export const getProducts = async (req, res, next) => {
     }
 }
 //CREATE A PRODUCT
-export const createProduct = async (req, res, next) => {
-    try{
-        const filename = req.file?.filename ?? null;
-        const imageUrl = filename ? `/uploads/${filename}` : '';
-        const { name, description, category, olderPrice, price } = req.body;
+export const createProduct = async (req, res) => {
+    try {
+        const { name, description, category, oldPrice, price } = req.body;
 
-        const product = await Product.create({
+        if (!req.file) {
+            return res.status(400).json({ message: "Image is required" });
+        }
+
+        const imageUrl = `/uploads/${req.file.filename}`;
+
+        const newProduct = new Product({
             name,
             description,
             category,
-            olderPrice : Number(olderPrice),
-            price : Number(price),
-            imageUrl,
+            oldPrice,
+            price,
+            imageUrl
         });
-        res.status(201).json(product);
+
+        await newProduct.save();
+
+        res.status(201).json({
+            message: "Product added successfully",
+            product: newProduct
+        });
+
+    } catch (error) {
+        console.error("CREATE PRODUCT ERROR:", error);
+        res.status(500).json({ message: "Internal server error" });
     }
-    catch(error){
-        next(error);
-    }
-}
+};
 
     //UPDATE A PRODUCTDELETE A PRODUCT BY ID
     export const deleteProduct = async (req, res, next) => {

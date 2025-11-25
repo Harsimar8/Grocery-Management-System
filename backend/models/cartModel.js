@@ -7,7 +7,7 @@ const CartItemSchema  = new mongoose.Schema({
         required: true
     },
     product: {
-  type: Number,   // Accept number product ID
+  type: String,   // Accept string product ID for both dummy and backend
   required: true
 },
 

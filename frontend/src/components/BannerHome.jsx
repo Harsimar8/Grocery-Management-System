@@ -3,7 +3,7 @@ import { bannerStyles } from '../assets/dummyStyles'
 import { FiUser, FiMenu, FiX, FiTruck ,FiSearch} from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { features } from '../assets/Dummy';
-import BannerFood from '../assets/FoodBanner.png'
+import BannerFood from '/assets/FoodBanner.png'
 
 
 const BannerHome = ({  onSearch }) => {

@@ -13,7 +13,7 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    olderPrice: {
+    oldPrice: {
         type: Number,
         required: true,
         min: 0

@@ -25,13 +25,32 @@ const getAuthHeader = () => {
 
 
 
+// Normalize cart items from backend
 const normalizeItems = (rawItems = []) => {
   return rawItems.map((item) => ({
-    id: item.id || item._id,
-    productId: item.product,    // number
-    quantity: item.quantity
+    id: item._id || item.id,
+    productId: item.product?._id || item.productId || item.product,
+    name: item.product?.name || item.name,
+    price: Number(item.product?.price || item.price || 0),
+    imageUrl: item.product?.imageUrl || item.imageUrl || "/no-image.png",
+    quantity: Number(item.quantity) || 1,
   }));
 };
+
+// Convert backend product format into dummy frontend format
+export const normalizeProduct = (p) => {
+  if (!p) return null;
+
+  return {
+    id: String(p.id || p._id),
+     // convert string to number OR fallback
+    name: p.name || "Unnamed",
+    price: Number(p.price || 0),
+    imageUrl: p.imageUrl || p.image || "/no-image.png",
+  };
+};
+
+
 
 
 export const CartProvider = ({ children }) => {
@@ -53,31 +72,23 @@ export const CartProvider = ({ children }) => {
 
   // ✅ Fetch cart from backend
   const fetchCart = async () => {
-    try {
-      const { data } = await axios.get("http://localhost:4000/api/cart", getAuthHeader());
+  try {
+    const { data } = await axios.get("http://localhost:4000/api/cart", getAuthHeader());
 
+    const rawItems =
+      data?.cart?.items ||
+      data?.items ||
+      (Array.isArray(data) ? data : []);
 
-      const rawItems = Array.isArray(data)
-        ? data
-        : Array.isArray(data.items)
-        ? data.items
-        : data.cart?.items || [];
-
-      setCart(normalizeItems(rawItems));
-    } catch (err) {
-  console.error("❌ Error fetching cart:", err.response?.status, err.message);
-  if (err.response?.status === 401) {
-    // Token invalid or expired
-    console.warn("⚠️ Unauthorized. Logging out user...");
-    localStorage.removeItem("authToken");
-    
+    setCart(normalizeItems(rawItems));
+  } catch (err) {
+    console.error("❌ Error fetching cart:", err.response?.status, err.message);
     setCart([]);
+  } finally {
+    setLoading(false);
   }
-}
-finally {
-      setLoading(false);
-    }
-  };
+};
+
 
   // ✅ Refresh cart
   const refreshCart = async () => {
@@ -157,8 +168,15 @@ finally {
   };
 
   // ✅ Totals and counts
+  
   const getTotal = () =>
-    cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  cart.reduce((sum, item) => {
+    const product = products.find(p => p.id === Number(item.productId));
+    const price = product?.price || 0;
+    return sum + price * item.quantity;
+  }, 0);
+
+
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 

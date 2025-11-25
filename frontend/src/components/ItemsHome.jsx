@@ -1,10 +1,11 @@
-
- 
 import React, { useEffect, useState } from "react";
 import { itemsHomeStyles } from "../assets/dummyStyles";
 import BannerHome from "./BannerHome";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../CartContext";
+import { normalizeProduct } from "../CartContext";
+import axios from "axios";
+
 import {
   FaShoppingCart,
   FaThList,
@@ -12,14 +13,15 @@ import {
   FaPlus,
   FaMinus,
 } from "react-icons/fa";
-import { categories, products } from "../assets/dummyData"; // ✅ Use local dummyData
+
+import { categories, products as dummyProducts } from "../assets/dummyData";
 
 const ItemsHome = () => {
   const [allProducts, setAllProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeCategory, setActiveCategory] = useState(() => {
-    return localStorage.getItem("activeCategory") || "All";
-  });
+  const [activeCategory, setActiveCategory] = useState(
+    localStorage.getItem("activeCategory") || "All"
+  );
 
   const navigate = useNavigate();
   const { cart, addToCart, updateQuantity, removeFromCart } = useCart();
@@ -28,55 +30,88 @@ const ItemsHome = () => {
     localStorage.setItem("activeCategory", activeCategory);
   }, [activeCategory]);
 
-  // ✅ Use dummyData instead of backend API
+  // ⭐ LOAD both dummy + backend products
   useEffect(() => {
-    setAllProducts(products);
+    const loadProducts = async () => {
+      try {
+        // 1️⃣ Start with dummy
+        let merged = [...dummyProducts];
+
+        // 2️⃣ Fetch from backend (same endpoint as Items.jsx)
+        const res = await axios.get("http://localhost:4000/api/items");
+
+        const backend = res.data;
+
+        // 3️⃣ Convert backend format → dummy format
+        // inside loadProducts() — replace formatted = backend.map(...)
+const formatted = backend.map((item) => ({
+  id: item._id ? item._id.toString() : String(item.id || item._id), // ensure string id
+  name: item.name,
+  price: Number(item.price || 0),
+  category: item.category,
+  image: item.imageUrl ? `http://localhost:4000${item.imageUrl}` : "/no-image.png",
+}));
+
+
+        // 4️⃣ Merge both
+        merged = [...merged, ...formatted];
+
+        setAllProducts(merged);
+      } catch (err) {
+        console.log("Backend failed → using dummy only");
+        setAllProducts(dummyProducts);
+      }
+    };
+
+    loadProducts();
   }, []);
 
-  // ✅ Filter Logic
+  // 🔍 SEARCH
   const productMatchesSearch = (product, term) => {
     if (!term) return true;
-    const cleanTerm = term.trim().toLowerCase();
-    const searchWords = cleanTerm.split(/\s+/);
-    return searchWords.every((word) =>
-      product.name.toLowerCase().includes(word)
-    );
+    const words = term.trim().toLowerCase().split(/\s+/);
+    return words.every((w) => product.name.toLowerCase().includes(w));
   };
 
+  // FILTERED LIST
   const filteredProducts = searchTerm
-    ? allProducts.filter((product) => productMatchesSearch(product, searchTerm))
+    ? allProducts.filter((p) => productMatchesSearch(p, searchTerm))
     : activeCategory === "All"
     ? allProducts
     : allProducts.filter(
-        (product) =>
-          product.category &&
-          product.category.toLowerCase() === activeCategory.toLowerCase()
+        (p) =>
+          p.category &&
+          p.category.toLowerCase() === activeCategory.toLowerCase()
       );
 
-  const getQuantity = (productId) => {
-    const item = cart.find((ci) => ci.productId === productId);
-    return item ? item.quantity : 0;
-  };
+  // CART HELPERS
+    const getQuantity = (productId) => {
+  const item = cart.find((ci) => String(ci.productId) === String(productId));
+  return item ? item.quantity : 0;
+};
 
-  const getLineItemId = (productId) => {
-    const item = cart.find((ci) => ci.productId === productId);
-    return item ? item.id : null;
-  };
+const getLineItemId = (productId) => {
+  const item = cart.find((ci) => String(ci.productId) === String(productId));
+  return item ? item.id : null;
+};
 
-  const handleIncrease = (product) => {
-    const lineId = getLineItemId(product.id);
-    if (lineId) {
-      updateQuantity(lineId, getQuantity(product.id) + 1);
-    } else {
-      addToCart(product.id, 1);
-    }
-  };
+
+ const handleIncrease = (product) => {
+  const lineId = getLineItemId(product.id);
+
+  if (lineId) {
+    updateQuantity(lineId, getQuantity(product.id) + 1);
+  } else {
+    addToCart(String(product.id), 1);
+  }
+};
+
 
   const handleDecrease = (product) => {
     const qty = getQuantity(product.id);
     const lineId = getLineItemId(product.id);
-    if (qty > 1 && lineId) updateQuantity(lineId, qty - 1);
-    else if (lineId) removeFromCart(lineId);
+    if (qty > 1) updateQuantity(lineId, qty - 1);
+    else removeFromCart(lineId);
   };
 
   const redirectToItemsPage = () => {
@@ -84,20 +119,14 @@ const ItemsHome = () => {
   };
 
   const sidebarCategories = [
-    {
-      name: "All",
-      icon: <FaThList className="text-lg" />,
-    },
+    { name: "All", icon: <FaThList className="text-lg" /> },
     ...categories,
   ];
 
-  const handleSearch = (term) => {
-    setSearchTerm(term);
-  };
-
   return (
     <div className={itemsHomeStyles.page}>
-      <BannerHome onSearch={handleSearch} />
+      <BannerHome onSearch={setSearchTerm} />
+
       <div className="flex flex-col lg:flex-row flex-1">
         {/* Sidebar */}
         <aside className={itemsHomeStyles.sidebar}>
@@ -113,6 +142,7 @@ const ItemsHome = () => {
             </h1>
             <div className={itemsHomeStyles.sidebarDivider} />
           </div>
+
           <div className={itemsHomeStyles.categoryList}>
             <ul className="space-y-3">
               {sidebarCategories.map((category) => (
@@ -153,7 +183,7 @@ const ItemsHome = () => {
                 </span>
                 <button
                   onClick={() => setSearchTerm("")}
-                  className="ml-4 text-emerald-500 hover:text-emerald-700 p-1 rounded-full transition-colors"
+                  className="ml-4 text-emerald-500 hover:text-emerald-700 p-1 rounded-full"
                 >
                   <span className="text-sm bg-emerald-100 px-2 py-1 rounded-full">
                     Clear
@@ -183,11 +213,9 @@ const ItemsHome = () => {
             {filteredProducts.length > 0 ? (
               filteredProducts.map((product) => {
                 const qty = getQuantity(product.id);
+
                 return (
-                  <div
-                    key={product.id}
-                    className={itemsHomeStyles.productCard}
-                  >
+                  <div key={product.id} className={itemsHomeStyles.productCard}>
                     <div className={itemsHomeStyles.imageContainer}>
                       <img
                         src={product.image}
@@ -199,10 +227,12 @@ const ItemsHome = () => {
                         }}
                       />
                     </div>
+
                     <div className={itemsHomeStyles.productContent}>
                       <h3 className={itemsHomeStyles.productTitle}>
                         {product.name}
                       </h3>
+
                       <div className={itemsHomeStyles.priceContainer}>
                         <div>
                           <p className={itemsHomeStyles.currentPrice}>
@@ -213,14 +243,13 @@ const ItemsHome = () => {
                           </span>
                         </div>
 
-                        {/* Add Controls */}
+                        {/* Add / Qty Controls */}
                         {qty === 0 ? (
                           <button
                             onClick={() => handleIncrease(product)}
                             className={itemsHomeStyles.addButton}
                           >
-                            <FaShoppingCart className="mr-2" />
-                            Add
+                            <FaShoppingCart className="mr-2" /> Add
                           </button>
                         ) : (
                           <div className={itemsHomeStyles.quantityControls}>
@@ -230,7 +259,9 @@ const ItemsHome = () => {
                             >
                               <FaMinus />
                             </button>
+
                             <span className="font-bold">{qty}</span>
+
                             <button
                               onClick={() => handleIncrease(product)}
                               className={itemsHomeStyles.quantityButton}
@@ -259,7 +290,7 @@ const ItemsHome = () => {
             )}
           </div>
 
-          {/* View All Button */}
+          {/* View All */}
           {!searchTerm && (
             <div className="text-center">
               <button
@@ -267,7 +298,9 @@ const ItemsHome = () => {
                 className={itemsHomeStyles.viewAllButton}
               >
                 View All{" "}
-                {activeCategory === "All" ? "Products" : activeCategory}
+                {activeCategory === "All"
+                  ? "Products"
+                  : activeCategory}{" "}
                 <FaChevronRight className="ml-3" />
               </button>
             </div>
@@ -279,4 +312,3 @@ const ItemsHome = () => {
 };
 
 export default ItemsHome;
-

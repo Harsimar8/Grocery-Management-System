@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ordersPageStyles as styles } from '../assetsadminStyles'
+import { ordersPageStyles as styles } from '../assets/adminStyles'
 import {FiCheck,
   FiCreditCard,
   FiPackage,
@@ -334,7 +334,7 @@ const closeModal = () =>{
                                                 status: newStatus,
                                             });
                                             updateOrderStatus(selectedOrder._id, newStatus);
-                                        )}
+                                        }}
                                         className={styles.modalSelect}>
                                         {statusOptions.filter(o => o !== 'All').map(option => (
                                             <option value={option} key={option}>

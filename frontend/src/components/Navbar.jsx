@@ -265,7 +265,7 @@ import {
 } from 'react-icons/fi';
 import { FaOpencart } from 'react-icons/fa';
 import { useCart } from '../CartContext';
-import logo from '../assets/logo.png';
+import logo from '/assets/logo.png';
 import { navbarStyles } from '../assets/dummyStyles';
 import { navItems } from '../assets/Dummy'
 

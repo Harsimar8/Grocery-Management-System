@@ -1,9 +1,8 @@
 
 
 import { CartItem } from "../models/cartModel.js";
-import pkg from "http-errors";
+import { Product } from "../models/productModel.js";
 import mongoose from "mongoose";
-const { createError } = pkg;
 
 
 
@@ -12,7 +11,12 @@ export const getCart = async (req, res, next) => {
   try {
     
 
-    let items = await CartItem.find({ user: req.user._id });
+    let items = await CartItem.find({ user: req.user._id })
+  .populate({
+    path: "product",
+    select: "name price imageUrl image"
+  });
+
 
 
 
@@ -37,7 +41,7 @@ export const getCart = async (req, res, next) => {
     const pid = productId || itemId;
 
     if (!pid || typeof quantity !== "number") {
-      throw createError(400, "Product identifier and quantity are required");
+      return res.status(400).json({ message: "Product identifier and quantity are required" });
     }
 
     let cartItem = await CartItem.findOne({ user: req.user._id, product: pid });
@@ -81,7 +85,7 @@ export const updateCartItems = async (req, res, next) => {
       user: req.user._id,
     });
 
-    if (!cartItem) throw createError(404, "Cart item not found");
+    if (!cartItem) return res.status(404).json({ message: "Cart item not found" });
 
     cartItem.quantity = Math.max(1, quantity);
     await cartItem.save();
@@ -104,7 +108,7 @@ export const deleteCartItem = async (req, res, next) => {
       _id: req.params.id,
       user: req.user._id,
     });
-    if (!cartItem) throw createError(404, "Cart item not found");
+    if (!cartItem) return res.status(404).json({ message: "Cart item not found" });
 
     await cartItem.deleteOne();
     res.json({ message: 'Item deleted', id: req.params.id })
